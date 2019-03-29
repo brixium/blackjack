@@ -3,6 +3,7 @@
 #include <string.h>
 
 #define DIMMAZZO 52
+#define CARTE_PER_SEME 13
 #define MAX_LEN_NOME 5
 #define MAX_LEN_SUIT 8
 
@@ -28,6 +29,7 @@ void printRawCarta(carta);			/*Stampa carta con valori contenuti nella struct ca
 void printRawMazzo(carta[]);		/*Stamapa mazzo con valori delle variabili*/
 void printCarta(carta);				/*Stampa carta con valori human friendly*/
 void printMazzo(carta[]);			/*Stampa mazzo con valori umani*/
+void mischiaMazzo(carta *);			/*Mescola il mazzo ordinando le carte in modo casuale*/
 
 void init_game(){
 	carte_nel_mazzo = DIMMAZZO;
@@ -35,30 +37,27 @@ void init_game(){
 	puntata = 0;
 	puntata_min = 1;
 	n_round = -1;
+
 	return;
 }
 
 void init_mazzo(carta mazzo[]){
 	int i;
 	for(i=0; i<carte_nel_mazzo; i++){
-		switch(i%4){
-			case 0:
-				mazzo[i].suit = 'C';
-				strcpy(mazzo[i].suit_l, "hearts\0");
-				break;
-			case 1:
-				mazzo[i].suit = 'Q';
-				strcpy(mazzo[i].suit_l, "diamonds\0");
-				break;
-			case 2:
-				mazzo[i].suit = 'F';
-				strcpy(mazzo[i].suit_l, "clubs\0");
-				break;
-			case 3:
-				mazzo[i].suit = 'P';
-				strcpy(mazzo[i].suit_l, "spades\0");
-				break;
+		if(i < CARTE_PER_SEME){
+			mazzo[i].suit = 'C';
+			strcpy(mazzo[i].suit_l, "hearts\0");
+		}else if(i < CARTE_PER_SEME*2){
+			mazzo[i].suit = 'Q';
+			strcpy(mazzo[i].suit_l, "diamonds\0");
+		}else if(i< CARTE_PER_SEME*3){
+			mazzo[i].suit = 'F';
+			strcpy(mazzo[i].suit_l, "clubs\0");
+		}else{
+			mazzo[i].suit = 'C';
+			strcpy(mazzo[i].suit_l, "spades\0");
 		}
+
 		if(i%13 == 0){
 			mazzo[i].nome = 'A';
 			strcpy(mazzo[i].nome_l, "ace");
@@ -91,6 +90,32 @@ carta deal(carta mazzo[]){
 	return c;
 }
 
+void mischiaMazzo(carta * mazzo){
+	carta * ozzam;
+	int i, j, r, dim_old_mazzo;
+
+	dim_old_mazzo = carte_nel_mazzo;
+	r = rand()%carte_nel_mazzo;
+	if((ozzam = (carta *)malloc(sizeof(carta)*carte_nel_mazzo))){
+		for(i=0; i<carte_nel_mazzo-1; i++){
+			*(ozzam+i) =  *(mazzo+r);
+			
+			for(j=r; j<dim_old_mazzo-1; j++)
+				*(mazzo+j) = *(mazzo+j+1);
+			
+			dim_old_mazzo--;
+			r = rand()%dim_old_mazzo;
+		}
+		*(ozzam+i) = *(mazzo);
+		for(i=0; i<carte_nel_mazzo; i++)
+			*(mazzo+i) = *(ozzam+i);
+		free(ozzam);
+	}else{
+		printf("Libera sta RAM\n");
+	}
+	return;
+}
+
 void printRawCarta(carta c){
 	printf("%c of %c\n", c.nome, c.suit);
 	return;
@@ -115,6 +140,6 @@ void printMazzo(carta m[]){
 }
 
 void print_var_status(){
-	printf("Portafoglio: %d\nPuntata: %d\nPuntata_min: %d\nN_round: %d\nCarte_nel_mazzo: %d\n", portafoglio, puntata, puntata_min, n_round, carte_nel_mazzo);
+	printf("\nPortafoglio: %d\nPuntata: %d\nPuntata_min: %d\nN_round: %d\nCarte_nel_mazzo: %d\n", portafoglio, puntata, puntata_min, n_round, carte_nel_mazzo);
 	return;
 }
