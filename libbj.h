@@ -27,19 +27,21 @@ int n_round;
 int carte_nel_mazzo;
 
 /*Funzioni di libreria per il blackjack*/
-void init_game();					/*Inizializza le variabili di gioco*/
-void init_mazzo(carta[]);	 		/*Inizializza il mazzo di carte francese da 52 carte*/
-carta deal(carta[]);				/*Prende una carta dal mazzo, eliminandola da lì, e la restituisce*/
-void printRawCarta(carta);			/*Stampa carta con valori contenuti nella struct carta_s*/
-void printRawMazzo(carta[]);		/*Stamapa mazzo con valori delle variabili*/
-void printCarta(carta);				/*Stampa carta con valori human friendly*/
-void printMazzo(carta[], int);		/*Stampa mazzo con valori umani, ingresso anche dimensione*/
-void mischiaMazzo(carta *);			/*Mescola il mazzo ordinando le carte in modo casuale*/
-int isMazzoOK(carta[]);				/*Controlla che un mazzo sia composto da tutte e sole le carte necessarie e sufficienti*/
-int evaluateMazzo(carta[], int);	/*Restituisce il valore del mazzo*/
-int evaluateCarta(carta);			/*Restituisce il valore della carta (asso vale 11 di default)*/
-int assoInMazzo(carta[], int);		/*Restituisce il numero di assi nel mazzo*/
-void assoValeUno(carta *, int);
+void init_game();						/*Inizializza le variabili di gioco*/
+void init_mazzo(carta[]);	 			/*Inizializza il mazzo di carte francese da 52 carte*/
+carta deal(carta[]);					/*Prende una carta dal mazzo, eliminandola da lì, e la restituisce*/
+void printRawCarta(carta);				/*Stampa carta con valori contenuti nella struct carta_s*/
+void printRawMazzo(carta[], int);		/*Stamapa mazzo con valori delle variabili*/
+void printCarta(carta);					/*Stampa carta con valori human friendly*/
+void printMazzo(carta[], int);			/*Stampa mazzo con valori umani, ingresso anche dimensione*/
+void mischiaMazzo(carta *);				/*Mescola il mazzo ordinando le carte in modo casuale*/
+int isMazzoOK(carta[]);					/*Controlla che un mazzo sia composto da tutte e sole le carte necessarie e sufficienti*/
+int evaluateMazzo(carta[], int);		/*Restituisce il valore del mazzo*/
+int evaluateCarta(carta);				/*Restituisce il valore della carta (asso vale 11 di default)*/
+int assoInMazzo(carta[], int);			/*Restituisce il numero di assi nel mazzo*/
+void assoValeUno(carta *, int);			/*Modifica il primo asso del mazzo in ingresso, dandogli valore 1 anziché 11*/
+int isBlackJack(carta[], int);			/*Controlla se il mazzo inserito è blackjack*/
+void printMazzoNascosto(carta[], int);	/*Stampa il mazzo con la seconda carta nascosta*/
 /*Le funzioni*/
 void init_game(){
 	carte_nel_mazzo = DIMMAZZO;
@@ -173,6 +175,17 @@ void assoValeUno(carta * m, int dim){
 	}else
 		printf("No memory\n");
 }
+int isBlackJack(carta m[], int dim){
+	if(dim!=2)
+		return 0;
+	if(m[0].nome == 'A')
+		if(m[1].nome == 'J' || m[1].nome == 'Q' || m[1].nome == 'K')
+			return 1;
+	if(m[0].nome == 'J' || m[0].nome == 'Q' || m[0].nome == 'K')
+		if(m[1].nome == 'A')
+			return 1;
+	return 0;
+}
 
 int evaluateMazzo(carta m[], int dim){
 	int valore, i;
@@ -187,9 +200,9 @@ void printRawCarta(carta c){
 	return;
 }
 
-void printRawMazzo(carta m[]){
+void printRawMazzo(carta m[], int dim){
 	int i;
-	for(i=0; i<carte_nel_mazzo; i++)
+	for(i=0; i<dim; i++)
 		printf("%c of %c\n", m[i].nome, m[i].suit);
 	return;
 }
@@ -199,10 +212,14 @@ void printCarta(carta c){
 }
 void printMazzo(carta m[], int dim){
 	int i;
-	for(i=0; i<dim; i++){
+	for(i=0; i<dim; i++)
 		printf("%s\tof %s\n", m[i].nome_l, m[i].suit_l);
-	}
 	return;
+}
+
+void printMazzoNascosto(carta m[], int dim){
+	printf("%s\tof %s\n", m[0].nome_l, m[0].suit_l);
+	printf("???\tof ???\n");
 }
 
 void print_var_status(){
