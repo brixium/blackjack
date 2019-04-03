@@ -6,6 +6,9 @@
 #define CARTE_PER_SEME 13
 #define MAX_LEN_NOME 5
 #define MAX_LEN_SUIT 8
+#define CONTO_CORRETTO 6789
+
+#define MAX_CARTE_X_PLAYER 11
 
 typedef struct carta_s{
 	char nome; /*A,2,3,4,5,6,7,8,9,0,J,Q,K*/
@@ -17,20 +20,27 @@ typedef struct carta_s{
 /*Variabili per il gioco*/
 int portafoglio;
 int puntata;
+int side_bet_1;
+int side_bet_2;
 int puntata_min;
 int n_round;
 int carte_nel_mazzo;
 
-/*Metodi di libreria per il blackjack*/
+/*Funzioni di libreria per il blackjack*/
 void init_game();					/*Inizializza le variabili di gioco*/
 void init_mazzo(carta[]);	 		/*Inizializza il mazzo di carte francese da 52 carte*/
 carta deal(carta[]);				/*Prende una carta dal mazzo, eliminandola da lì, e la restituisce*/
 void printRawCarta(carta);			/*Stampa carta con valori contenuti nella struct carta_s*/
 void printRawMazzo(carta[]);		/*Stamapa mazzo con valori delle variabili*/
 void printCarta(carta);				/*Stampa carta con valori human friendly*/
-void printMazzo(carta[]);			/*Stampa mazzo con valori umani*/
+void printMazzo(carta[], int);		/*Stampa mazzo con valori umani, ingresso anche dimensione*/
 void mischiaMazzo(carta *);			/*Mescola il mazzo ordinando le carte in modo casuale*/
-
+int isMazzoOK(carta[]);				/*Controlla che un mazzo sia composto da tutte e sole le carte necessarie e sufficienti*/
+int evaluateMazzo(carta[], int);	/*Restituisce il valore del mazzo*/
+int evaluateCarta(carta);			/*Restituisce il valore della carta (asso vale 11 di default)*/
+int assoInMazzo(carta[], int);		/*Restituisce il numero di assi nel mazzo*/
+void assoValeUno(carta *, int);
+/*Le funzioni*/
 void init_game(){
 	carte_nel_mazzo = DIMMAZZO;
 	portafoglio = 0;
@@ -116,6 +126,62 @@ void mischiaMazzo(carta * mazzo){
 	return;
 }
 
+int isMazzoOK(carta mazzo[]){
+	int flag, conto, i;
+
+	flag = 1;
+	conto = 0;
+	for(i=0; i<carte_nel_mazzo; i++){
+		conto += mazzo[i].nome;
+		conto += mazzo[i].suit;
+	}
+	if(conto != CONTO_CORRETTO)
+		flag = 0;
+	return flag;
+}
+
+int evaluateCarta(carta c){
+	if(c.nome >= '1' && c.nome <= '9')
+		return (int)(c.nome - '0');
+	if(c.nome == 'J' || c.nome == 'Q' || c.nome == 'K' || c.nome == '0')
+		return 10;
+	if(c.nome == 'A')
+		return 11;
+	return -1;
+}
+
+int assoInMazzo(carta m[], int dim){
+	int i, r;
+	for(i=0, r=0; i<dim; i++)
+		if(m[i].nome == 'A')
+			r++;
+	return r;
+}
+
+void assoValeUno(carta * m, int dim){
+	int i, flag;
+	carta * nm = NULL;
+	if((nm = (carta *)malloc(sizeof(carta)*dim))){
+		for(i=0, flag =0;!flag && i<dim; i++){
+			if((nm+i)->nome == 'A')
+				(nm+i)->nome = '1';
+			else
+				*(nm+i) = *(m);
+		}
+		m = nm;
+		free(nm);
+	}else
+		printf("No memory\n");
+}
+
+int evaluateMazzo(carta m[], int dim){
+	int valore, i;
+	valore = 0;
+	for(i=0; i<dim; i++)
+		valore += evaluateCarta(m[i]);
+	return valore;
+}
+
 void printRawCarta(carta c){
 	printf("%c of %c\n", c.nome, c.suit);
 	return;
@@ -128,13 +194,13 @@ void printRawMazzo(carta m[]){
 	return;
 }
 void printCarta(carta c){
-	printf("%s of %s\n", c.nome_l, c.suit_l);
+	printf("%s\tof %s\n", c.nome_l, c.suit_l);
 	return;
 }
-void printMazzo(carta m[]){
+void printMazzo(carta m[], int dim){
 	int i;
-	for(i=0; i<carte_nel_mazzo; i++){
-		printf("%s of %s\n", m[i].nome_l, m[i].suit_l);
+	for(i=0; i<dim; i++){
+		printf("%s\tof %s\n", m[i].nome_l, m[i].suit_l);
 	}
 	return;
 }
