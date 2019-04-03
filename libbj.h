@@ -18,12 +18,12 @@ typedef struct carta_s{
 }carta;
 
 /*Variabili per il gioco*/
-int portafoglio;
-int puntata;
+float portafoglio;
+float puntata;
 int side_bet_1;
 int side_bet_2;
 int puntata_min;
-int n_round;
+/*int n_round;*/
 int carte_nel_mazzo;
 
 /*Funzioni di libreria per il blackjack*/
@@ -48,8 +48,6 @@ void init_game(){
 	portafoglio = 0;
 	puntata = 0;
 	puntata_min = 1;
-	n_round = -1;
-
 	return;
 }
 
@@ -99,6 +97,8 @@ carta deal(carta mazzo[]){
 	for(i=1; i<carte_nel_mazzo; i++)
 		mazzo[i-1] = mazzo[i];
 	carte_nel_mazzo--;
+	if(carte_nel_mazzo == 0)
+		init_mazzo(mazzo);
 	return c;
 }
 
@@ -174,6 +174,7 @@ void assoValeUno(carta * m, int dim){
 		free(nm);
 	}else
 		printf("No memory\n");
+	return;
 }
 int isBlackJack(carta m[], int dim){
 	if(dim!=2)
@@ -220,9 +221,10 @@ void printMazzo(carta m[], int dim){
 void printMazzoNascosto(carta m[], int dim){
 	printf("%s\tof %s\n", m[0].nome_l, m[0].suit_l);
 	printf("???\tof ???\n");
+	return;
 }
 
 void print_var_status(){
-	printf("\nPortafoglio: %d\nPuntata: %d\nPuntata_min: %d\nN_round: %d\nCarte_nel_mazzo: %d\n", portafoglio, puntata, puntata_min, n_round, carte_nel_mazzo);
+	printf("\nPortafoglio: %f\nPuntata: %f\nPuntata_min: %d\nCarte_nel_mazzo: %d\n", portafoglio, puntata, puntata_min, carte_nel_mazzo);
 	return;
 }
