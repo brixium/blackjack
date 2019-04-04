@@ -25,11 +25,12 @@ int side_bet_2;
 int puntata_min;
 /*int n_round;*/
 int carte_nel_mazzo;
+carta mazzo[DIMMAZZO];
 
 /*Funzioni di libreria per il blackjack*/
 void init_game();						/*Inizializza le variabili di gioco*/
-void init_mazzo(carta[]);	 			/*Inizializza il mazzo di carte francese da 52 carte*/
-carta deal(carta[]);					/*Prende una carta dal mazzo, eliminandola da lì, e la restituisce*/
+void init_mazzo(carta *);	 			/*Inizializza il mazzo di carte francese da 52 carte*/
+carta deal(carta *);					/*Prende una carta dal mazzo, eliminandola da lì, e la restituisce*/
 void printRawCarta(carta);				/*Stampa carta con valori contenuti nella struct carta_s*/
 void printRawMazzo(carta[], int);		/*Stamapa mazzo con valori delle variabili*/
 void printCarta(carta);					/*Stampa carta con valori human friendly*/
@@ -44,61 +45,63 @@ int isBlackJack(carta[], int);			/*Controlla se il mazzo inserito è blackjack*/
 void printMazzoNascosto(carta[], int);	/*Stampa il mazzo con la seconda carta nascosta*/
 /*Le funzioni*/
 void init_game(){
-	carte_nel_mazzo = DIMMAZZO;
 	portafoglio = 0;
 	puntata = 0;
 	puntata_min = 1;
 	return;
 }
 
-void init_mazzo(carta mazzo[]){
+void init_mazzo(carta * mazzo){
 	int i;
+	carte_nel_mazzo = DIMMAZZO;
 	for(i=0; i<carte_nel_mazzo; i++){
 		if(i < CARTE_PER_SEME){
-			mazzo[i].suit = 'C';
-			strcpy(mazzo[i].suit_l, "hearts\0");
+			(mazzo+i)->suit = 'C';
+			strcpy((mazzo+i)->suit_l, "hearts\0");
 		}else if(i < CARTE_PER_SEME*2){
-			mazzo[i].suit = 'Q';
-			strcpy(mazzo[i].suit_l, "diamonds\0");
+			(mazzo+i)->suit = 'Q';
+			strcpy((mazzo+i)->suit_l, "diamonds\0");
 		}else if(i< CARTE_PER_SEME*3){
-			mazzo[i].suit = 'F';
-			strcpy(mazzo[i].suit_l, "clubs\0");
+			(mazzo+i)->suit = 'F';
+			strcpy((mazzo+i)->suit_l, "clubs\0");
 		}else{
-			mazzo[i].suit = 'C';
-			strcpy(mazzo[i].suit_l, "spades\0");
+			(mazzo+i)->suit = 'P';
+			strcpy((mazzo+i)->suit_l, "spades\0");
 		}
 
 		if(i%13 == 0){
-			mazzo[i].nome = 'A';
-			strcpy(mazzo[i].nome_l, "ace");
+			(mazzo+i)->nome = 'A';
+			strcpy((mazzo+i)->nome_l, "ace");
 		}else if(i%13>0 && i%13<9){
-			mazzo[i].nome = '1'+ (i%13);
-			sprintf(mazzo[i].nome_l, "%d", (i%13)+1);
+			(mazzo+i)->nome = '1'+ (i%13);
+			sprintf((mazzo+i)->nome_l, "%d", (i%13)+1);
 		}else if(i%13 == 9){
-			mazzo[i].nome = '0';
-			strcpy(mazzo[i].nome_l, "10\0");
+			(mazzo+i)->nome = '0';
+			strcpy((mazzo+i)->nome_l, "10\0");
 		}else if(i%13 == 10){
-			mazzo[i].nome = 'J';
-			strcpy(mazzo[i].nome_l, "jack\0");
+			(mazzo+i)->nome = 'J';
+			strcpy((mazzo+i)->nome_l, "jack\0");
 		}else if(i%13 == 11){
-			mazzo[i].nome = 'Q';
-			strcpy(mazzo[i].nome_l, "queen\0");
+			(mazzo+i)->nome = 'Q';
+			strcpy((mazzo+i)->nome_l, "queen\0");
 		}else{
-			mazzo[i].nome = 'K';
-			strcpy(mazzo[i].nome_l, "king\0");
+			(mazzo+i)->nome = 'K';
+			strcpy((mazzo+i)->nome_l, "king\0");
 		}
 	}
 	return;
 }
 
-carta deal(carta mazzo[]){
+carta deal(carta * mazzo){
 	int i;
-	carta c = mazzo[0];
+	carta c = *(mazzo);
 	for(i=1; i<carte_nel_mazzo; i++)
-		mazzo[i-1] = mazzo[i];
+		*(mazzo+i-1) = *(mazzo+i);
 	carte_nel_mazzo--;
-	if(carte_nel_mazzo == 0)
-		init_mazzo(mazzo);
+	if(carte_nel_mazzo <= 0){
+		init_mazzo(&mazzo[0]);
+		mischiaMazzo(&mazzo[0]);
+	}
 	return c;
 }
 
@@ -130,19 +133,21 @@ void mischiaMazzo(carta * mazzo){
 
 int isMazzoOK(carta mazzo[]){
 	int flag, conto, i;
-
 	flag = 1;
-	conto = 0;
-	for(i=0; i<carte_nel_mazzo; i++){
-		conto += mazzo[i].nome;
-		conto += mazzo[i].suit;
-	}
+	for(conto = 0, i=0; i<carte_nel_mazzo; i++)
+		conto += mazzo[i].nome + mazzo[i].suit;
 	if(conto != CONTO_CORRETTO)
 		flag = 0;
 	return flag;
 }
 
 int evaluateCarta(carta c){
+	/*codice di debug
+	if(c.nome == '1'){
+		int x = (int)(c.nome - '0');
+		printf("Questo asso vale %d\n", x);
+	}
+	Fine debug*/
 	if(c.nome >= '1' && c.nome <= '9')
 		return (int)(c.nome - '0');
 	if(c.nome == 'J' || c.nome == 'Q' || c.nome == 'K' || c.nome == '0')
@@ -157,25 +162,23 @@ int assoInMazzo(carta m[], int dim){
 	for(i=0, r=0; i<dim; i++)
 		if(m[i].nome == 'A')
 			r++;
+	/*RIGA DI DEBUG
+	printf("Ci sono %d assi nel mazzo\n", r);
+	*/
 	return r;
 }
 
 void assoValeUno(carta * m, int dim){
 	int i, flag;
-	carta * nm = NULL;
-	if((nm = (carta *)malloc(sizeof(carta)*dim))){
-		for(i=0, flag =0;!flag && i<dim; i++){
-			if((nm+i)->nome == 'A')
-				(nm+i)->nome = '1';
-			else
-				*(nm+i) = *(m);
+	for(i=0, flag = 0; !flag && i<dim; i++)
+		if((m+i)->nome == 'A'){
+			(m+i)->nome = '1';
+			/*DEBUG PRINT*/
+			printf("Ho modificato l'asso in posizione %d\n", i);
 		}
-		m = nm;
-		free(nm);
-	}else
-		printf("No memory\n");
 	return;
 }
+
 int isBlackJack(carta m[], int dim){
 	if(dim!=2)
 		return 0;
@@ -190,8 +193,7 @@ int isBlackJack(carta m[], int dim){
 
 int evaluateMazzo(carta m[], int dim){
 	int valore, i;
-	valore = 0;
-	for(i=0; i<dim; i++)
+	for(i=0, valore=0; i<dim; i++)
 		valore += evaluateCarta(m[i]);
 	return valore;
 }
