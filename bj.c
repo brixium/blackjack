@@ -1,26 +1,18 @@
-#include <time.h>
 #include "libbj.h"
 
-/*TODO: se il banco ha asso scoperto, chiedere al giocatore l'assicurazione. Se non la fa, ...*/
+/*DONE: se il banco ha asso scoperto, chiedere al giocatore l'assicurazione. Se non la fa, ...*/
+/*NOT TRIED YET: fix case in wich player/banco has 2 aces (22 pt) and p1 decides to hit*/
+/*DONE: fix ace in banco*/
 int main(int argc, char * argv[]){
-	char flag, scelta, assicurazione;
+	char flag, hitorstand, assicurazione;
 	/*int nplayer;*/
 	int giro, pp, bp, gameOver, p1_score, b_score, b_wins, p1_wins;
 	carta player1[MAX_CARTE_X_PLAYER];
 	carta banco[MAX_CARTE_X_PLAYER];
-	/*
-	clock_t start, end;
-	double delta;
-	*/
-	time_t t;
 	
-	srand(time(&t));
-	/*start = clock();*/
 	/*nplayer = 1;*/
 	flag = 'n';
 	init_game();
-	init_mazzo(&mazzo[0]);
-	mischiaMazzo(&mazzo[0]);
 	b_wins = 0;
 	p1_wins = 0;
 	/* Ciclo gioco 
@@ -29,15 +21,15 @@ int main(int argc, char * argv[]){
 	*/
 	printf("Di quanto denaro disponi? ");
 	scanf("%f", &portafoglio);
-	while((flag=='n' || flag=='N') && portafoglio > 0){
-		print_var_status();
+	while((flag!='y' && flag!='Y') && portafoglio > 0){
+		/*print_var_status();*/
 		gameOver = 0; /* 0=still playing; 1=stand; 2=sballa; 3=max/bj */
 		p1_score = 0;
 		b_score = 0;
 		pp = 0;
 		bp = 0;
 		giro = 0;
-		scelta = 'O';
+		hitorstand = 'O';
 		assicurazione = 'N';
 
 		printf("Inserisci l'importo da puntare: ");
@@ -61,27 +53,23 @@ int main(int argc, char * argv[]){
 				printMazzoNascosto(banco, bp);
 				b_score = evaluateMazzo(banco, bp);
 				/*Se il banco ha come carta scoperta un asso, chiedi al giocatore se vuole fare l'assicurazione*/
-				if(banco[0].nome == 'A'){/*
+				if(banco[0].nome == 'A'){
 					printf("Il banco rischia di fare blackjack! Vuoi fare l'assicurazione? [Y/N]");
 					scanf(" %c", &assicurazione);
-					if(c == 'y' || c == 's' || c == 'Y' || c == 'S'){
+					if(assicurazione == 'y' ||assicurazione == 's' || assicurazione == 'Y' || assicurazione == 'S'){
 						portafoglio = portafoglio - (puntata/2.0);
-						if(isBlackJack(banco, bp))
-							portafoglio += 
 					}
-					if(isBlackJack(banco, bp))
-						if(
-						*/
 				}
-				/*printf("Il banco ha %d punti\n", b_score);*/
-			}else{ /*In tutti gli altri casi*/
+			}else{ /*If you're on round 3 or more*/
 				/*Scelta: dai o stai*/
-				if(p1_score == 21){
+				if(b_score == 21 && isBlackJack(banco, bp))
+					gameOver = 1;
+				else if(p1_score == 21)
 					gameOver = 3;
-				}else{
-					printf("[D]ai carta oppure [S]tai? [D/S] ");
-					scanf(" %c", &scelta);
-					if(scelta == 'D' || scelta == 'd'){
+				else{
+					printf("[H]it or [S]tand? [H/S] [D/S]");
+					scanf(" %c", &hitorstand);
+					if(hitorstand == 'h' || hitorstand == 'd' || hitorstand == 'H' || hitorstand == 'D'){
 						player1[pp] = deal(&mazzo[0]);
 						pp++;
 						p1_score = evaluateMazzo(player1, pp);
@@ -108,7 +96,7 @@ int main(int argc, char * argv[]){
 						printf("Le tue carte:\n");
 						printMazzo(player1, pp);
 						printf("I tuoi punti: %d\n", p1_score);
-					}else if(scelta == 'S' || scelta == 's'){
+					}else if(hitorstand == 'S' || hitorstand == 's'){
 						p1_score = evaluateMazzo(player1, pp);
 						gameOver = 1;
 					}
@@ -123,7 +111,7 @@ int main(int argc, char * argv[]){
 			b_score = evaluateMazzo(banco, bp);
 			printf("Il banco:\n");
 			printMazzo(banco, bp);
-			printf("Hai sballato e perso %f euro!\n", puntata);
+			printf("LOSE! Hai sballato e perso %f euro!\n", puntata);
 		/*Se il player non ha sballato*/
 		}else{
 			/*Continua il banco con le sue regole*/
@@ -131,18 +119,18 @@ int main(int argc, char * argv[]){
 			if(isBlackJack(banco, bp)){
 				printf("Il banco:\n");
 				printMazzo(banco, bp);
-				if(assicurazione && isBlackJack(player1, pp)){
+				if((assicurazione == 'y' || assicurazione == 'Y')  && isBlackJack(player1, pp)){
 					portafoglio = portafoglio + puntata;
 					printf("PUSH! Non vinci né perdi niente\n");
 				}else{
-					printf("Hai perso! Il banco ha blackjack\n");
+					printf("LOSE! Hai perso! Il banco ha blackjack\n");
 					b_wins++;
 				}
 			/*Se il banco non ha fatto bj*/
 			}else{
 				/*Se il giocatore ha blackjack, viene pagato 3 a 2*/
 				if(isBlackJack(player1, pp)){
-					printf("Winner winner chicken dinner! Hai fatto blackjack!\n");
+					printf("WIN! Winner winner chicken dinner! Hai fatto blackjack!\n");
 					printf("Il banco aveva:\n");
 					printMazzo(banco, bp);
 					portafoglio += puntata*3/2;
@@ -151,7 +139,7 @@ int main(int argc, char * argv[]){
 					/*In tutti gli altri casi, il banco chiede carta finché non arriva a 17, dopodiché si ferma*/
 					/*Problema che si verifica quando il banco ha un asso in mano è che non lo considera come 1 quando sballa*/
 					if(b_score > 21 && assoInMazzo(banco, bp))
-						assoValeUno(&mazzo[0], bp);
+						assoValeUno(&banco[0], bp);
 					while(b_score<17){
 						printf("Il banco:\n");
 						printMazzo(banco, bp);
@@ -160,39 +148,35 @@ int main(int argc, char * argv[]){
 						bp++;
 						b_score = evaluateMazzo(banco, bp);
 						if(b_score > 21 && assoInMazzo(banco, bp))
-							assoValeUno(&mazzo[0], bp);
+							assoValeUno(&banco[0], bp);
 						b_score = evaluateMazzo(banco, bp);
 					}
 					/*Confronto del risultato con quello del giocatore 1*/
 					printf("Il banco:\n");
 					printMazzo(banco, bp);
-
+					b_score = evaluateMazzo(banco, bp);/*Dovrebbe essere inutile ma last resort*/
 					if(b_score > 21){
 						portafoglio += 2*puntata;
-						printf("Il banco sballa, bella per voi!\n");
+						printf("WIN! Il banco sballa, bella per voi!\n");
 						p1_wins++;
 					}else if(b_score > p1_score){
-						printf("Peccato! Il banco ha totalizzato %d punti, contro i tuoi %d. Ciò significa che hai perso.\n", b_score, p1_score);
+						printf("LOSE! Peccato! Il banco ha totalizzato %d punti, contro i tuoi %d. Ciò significa che hai perso.\n", b_score, p1_score);
 						b_wins++;
 					}else if(b_score < p1_score){
 						portafoglio += 2*puntata;
-						printf("Bella per P1 che totalizza %d punti e il banco solo %d, vincendo i soldi!\n", p1_score, b_score);
+						printf("WIN! Bella per P1 che totalizza %d punti e il banco solo %d, vincendo i soldi!\n", p1_score, b_score);
 						p1_wins++;
 					}else if(b_score == p1_score){
 						portafoglio += puntata;
-						printf("Non hai vinto né perso in quanto sia tu che il banco avete totalizzato %d punti!\n", b_score);
+						printf("PUSH! Non hai vinto né perso in quanto sia tu che il banco avete totalizzato %d punti!\n", b_score);
 					}
 				}
 			}
 		}
 		printf("Il tuo bilancio è di %f euro\n", portafoglio);
-		printf("VUOI USCIRE? [Y/n] (default=yes)");
+		printf("VUOI USCIRE? [Y/N] (default=no)");
 		scanf(" %c", &flag);
 	}
-	/*
-	end = clock();
-	delta = end-start;
-	printf("\nExec time: %f ms\n", delta);
-	*/
 	return 0;
 }
+

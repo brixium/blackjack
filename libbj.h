@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #define DIMMAZZO 52
 #define CARTE_PER_SEME 13
@@ -11,7 +12,7 @@
 #define MAX_CARTE_X_PLAYER 11
 
 typedef struct carta_s{
-	char nome; /*A,2,3,4,5,6,7,8,9,0,J,Q,K*/
+	char nome; /*1,2,3,4,5,6,7,8,9,0,J,Q,K,A*/
 	char suit; /*C,Q,F,P*/
 	char nome_l[MAX_LEN_NOME+1]; /*Ace, 1, 2, 3, ..., 10, Jack, Queen, King*/
 	char suit_l[MAX_LEN_SUIT+1]; /*hearts(C), diamonds(Q), clubs(F) and spades(P)*/
@@ -43,11 +44,15 @@ int assoInMazzo(carta[], int);			/*Restituisce il numero di assi nel mazzo*/
 void assoValeUno(carta *, int);			/*Modifica il primo asso del mazzo in ingresso, dandogli valore 1 anziché 11*/
 int isBlackJack(carta[], int);			/*Controlla se il mazzo inserito è blackjack*/
 void printMazzoNascosto(carta[], int);	/*Stampa il mazzo con la seconda carta nascosta*/
+
 /*Le funzioni*/
 void init_game(){
 	portafoglio = 0;
 	puntata = 0;
 	puntata_min = 1;
+
+	init_mazzo(&mazzo[0]);
+	mischiaMazzo(&mazzo[0]);
 	return;
 }
 
@@ -94,7 +99,9 @@ void init_mazzo(carta * mazzo){
 
 carta deal(carta * mazzo){
 	int i;
-	carta c = *(mazzo);
+	carta c;
+
+	c = *(mazzo);
 	for(i=1; i<carte_nel_mazzo; i++)
 		*(mazzo+i-1) = *(mazzo+i);
 	carte_nel_mazzo--;
@@ -108,7 +115,9 @@ carta deal(carta * mazzo){
 void mischiaMazzo(carta * mazzo){
 	carta * ozzam;
 	int i, j, r, dim_old_mazzo;
+	time_t t;
 
+	srand(time(&t));
 	dim_old_mazzo = carte_nel_mazzo;
 	r = rand()%carte_nel_mazzo;
 	if((ozzam = (carta *)malloc(sizeof(carta)*carte_nel_mazzo))){
