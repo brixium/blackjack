@@ -50,6 +50,10 @@ int main(int argc, char * argv[]){
 				printf("Le tue carte:\n");
 				printDeck(player1, pp);
 				p1_score = evaluateDeck(player1, pp);
+				if(p1_score > 21){
+					aceCountsAsOne(player1, pp);
+					p1_score = evaluateDeck(player1, pp);
+				}
 				printf("Hai %d punti nella mano\n", p1_score);
 				/*Stato deck*/
 				printf("Il dealer:\n");

@@ -1,14 +1,20 @@
 CC=gcc
 CFLAGS=-Wall -O2 -std=c89 -pedantic -static
+CFLAGSNS=-Wall -O2 -std=c89 -pedantic
+DIRMONEY=money/
+DIRCARDS=cards/
 
-blackjack: blackjack.o cards.o money.o
-	$(CC) $(CFLAGS) bj.o cards.o money.o -o blackjack
-blackjack.o: bj.c cards.h money.h
+blackjack_static: blackjack.o $(DIRCARDS)cards.o $(DIRMONEY)money.o
+	$(CC) $(CFLAGS) bj.o $(DIRCARDS)cards.o $(DIRMONEY)money.o -o blackjack
+blackjack: blackjack.o $(DIRCARDS)cards.o $(DIRMONEY)money.o
+	$(CC) $(CFLAGSNS) bj.o $(DIRCARDS)cards.o $(DIRMONEY)money.o -o blackjack
+
+blackjack.o: bj.c $(DIRCARDS)cards.h $(DIRMONEY)money.h
 	$(CC) -c bj.c -o bj.o
-cards.o: cards.c cards.h
-	$(CC) -c cards.c -o cards.o
-money.o: money.c money.h
-	gcc -c money.c -o money.o
+cards.o: $(DIRCARDS)cards.c $(DIRCARDS)cards.h
+	$(CC) -c $(DIRCARDS)cards.c -o cards.o
+money.o: $(DIRMONEY)money.c $(DIRMONEY)money.h
+	gcc -c $(DIRMONEY)money.c -o money.o
 
 clean:
-	rm *.o
+	rm *.o $(DIRMONEY)*.o $(DIRCARDS)*.o

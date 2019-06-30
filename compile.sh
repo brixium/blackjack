@@ -1,0 +1,1 @@
+make blackjack && make clean

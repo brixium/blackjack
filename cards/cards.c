@@ -102,12 +102,6 @@ int isDeckOK(card deck[]){
 }
 
 int evaluateCard(card c){
-	/*codice di debug
-	if(c.name == '1'){
-		int x = (int)(c.name - '0');
-		printf("Questo asso vale %d\n", x);
-	}
-	Fine debug*/
 	if(c.name >= '1' && c.name <= '9')
 		return (int)(c.name - '0');
 	if(c.name == 'J' || c.name == 'Q' || c.name == 'K' || c.name == '0')
@@ -122,9 +116,6 @@ int aceInDeck(card m[], int dim){
 	for(i=0, r=0; i<dim; i++)
 		if(m[i].name == 'A')
 			r++;
-	/*RIGA DI DEBUG
-	printf("Ci sono %d assi nel deck\n", r);
-	*/
 	return r;
 }
 
@@ -133,9 +124,7 @@ void aceCountsAsOne(card * m, int dim){
 	for(i=0, flag = 0; !flag && i<dim; i++)
 		if((m+i)->name == 'A'){
 			(m+i)->name = '1';
-			/*DEBUG PRINT
-			printf("Ho modificato l'asso in posizione %d\n", i);
-			*/
+			flag = 1;
 		}
 	return;
 }
