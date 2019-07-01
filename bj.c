@@ -1,5 +1,5 @@
-#include "cards.h"
-#include "money.h"
+#include "cards/cards.h"
+#include "money/money.h"
 
 /*DONE: if the dealer has an ace, ask the player for insurance. If he doesn't want it, ...*/
 /*NOT TRIED YET: fix case in which player/dealer has 2 aces (22 pt) and p1 decides to hit*/
