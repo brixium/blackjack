@@ -1,18 +1,18 @@
 #include "cards/cards.h"
 #include "money/money.h"
+#include "player/player.h"
 
 /*DONE: if the dealer has an ace, ask the player for insurance. If he doesn't want it, ...*/
 /*NOT TRIED YET: fix case in which player/dealer has 2 aces (22 pt) and p1 decides to hit*/
 /*DONE: fix ace in dealer*/
 int main(int argc, char * argv[]){
-	char quit, hitorstand, insurance;
 	/*int nplayer;*/
-	int round, pp, bp, gameOver, p1_score, b_score, b_wins, p1_wins;
+	
 	card player1[MAX_CARDS_4_PLAYER];
 	card dealer[MAX_CARDS_4_PLAYER];
 	
 	/*nplayer = 1;*/
-	quit = 'n';
+	cli_cycle = 'n'; /*quit?*/
 	b_wins = 0;
 	p1_wins = 0;
 	
@@ -24,7 +24,7 @@ int main(int argc, char * argv[]){
 	*/
 	printf("Di quanto denaro disponi? ");
 	scanf("%f", &wallet);
-	while((quit!='y' && quit!='Y') && wallet > 0){
+	while((cli_cycle!='y' && cli_cycle!='Y') && wallet > 0){
 		/*print_var_status();*/
 		gameOver = 0; /* 0=still playing; 1=stand; 2=sballa; 3=max/bj */
 		p1_score = 0;
@@ -59,9 +59,13 @@ int main(int argc, char * argv[]){
 				printf("Il dealer:\n");
 				printDeckHidden(dealer, bp);
 				b_score = evaluateDeck(dealer, bp);
+				if(b_score > 21){
+					aceCountsAsOne(dealer, bp);
+					p1_score = evaluateDeck(dealer, bp);
+				}
 				/*Se il dealer ha come card scoperta un asso, chiedi al giocatore se vuole fare l'insurance*/
 				if(dealer[0].name == 'A'){
-					printf("Il dealer rischia di fare blackjack! Vuoi fare l'insurance? [Y/N]");
+					printf("Insurance? [Y/N]");
 					scanf(" %c", &insurance);
 					/*Add check: if wallet cannot afford insurance, don't let it happen*/
 					if(insurance == 'y' ||insurance == 's' || insurance == 'Y' || insurance == 'S'){
@@ -123,6 +127,7 @@ int main(int argc, char * argv[]){
 			printf("The dealer:\n");
 			printDeck(dealer, bp);
 			printf("LOSE! Hai sballato e perso %f euro!\n", bet);
+			b_wins++;
 		/*Se il player non ha sballato*/
 		}else{
 			/*Continua il dealer con le sue regole*/
@@ -186,8 +191,9 @@ int main(int argc, char * argv[]){
 		}
 		printf("Il tuo bilancio è di %f euro\n", wallet);
 		printf("WOULD YOU LIKE TO QUIT? [Y/N] (default=no)");
-		scanf(" %c", &quit);
+		scanf(" %c", &cli_cycle);
 	}
+	printf("You won %d times\nThe dealer won %d times\n", p1_wins, b_wins);
 	return 0;
 }
 
